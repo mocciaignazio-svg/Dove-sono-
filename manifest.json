@@ -8,8 +8,8 @@
   "icons": [
     {
       "src": "/AppOrario/Dove.png",
-      "sizes": "any",
-      "type": "image/x-icon"
+      "sizes": "192x192",
+      "type": "image/png"
     }
   ]
 }
