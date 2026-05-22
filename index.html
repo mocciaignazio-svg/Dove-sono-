@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Dove sono?</title>
     
-    <!-- PWA / App Mobile Meta Tags -->
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -13,17 +12,44 @@
     <link rel="apple-touch-icon" href="icon-192.png">
 
     <style>
-        :root { --primary: #2c3e50; --accent: #3498db; --bg: #f0f2f5; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; color: #333; }
-        .wrapper { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
-        h2 { margin-top: 0; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 15px; }
+        :root { --primary: #2c3e50; --accent: #3498db; --bg-app: #f0f2f5; }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background-color: var(--bg-app); 
+            margin: 0; 
+            padding: 20px; 
+            color: #333; 
+        }
+
+        .wrapper { 
+            max-width: 1000px; 
+            margin: 0 auto; 
+            background: transparent; 
+            padding: 0; 
+        }
+
+        h2, h3 { color: var(--primary); }
         .giorno-evidenziato { color: var(--accent); font-weight: bold; }
-        .controls { margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 10px; border: 1px solid #edf2f7; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-        button { padding: 10px 15px; border: none; border-radius: 6px; background-color: var(--primary); color: white; cursor: pointer; font-weight: 600; transition: all 0.3s ease; }
+        
+        .controls { 
+            margin: 20px 0; 
+            padding: 15px; 
+            background: rgba(255,255,255,0.6); 
+            border-radius: 10px; 
+            border: 1px solid rgba(0,0,0,0.05); 
+            display: flex; 
+            flex-wrap: wrap; 
+            align-items: center; 
+            gap: 10px; 
+        }
+
+        button { padding: 10px 15px; border: none; border-radius: 6px; background-color: var(--primary); color: white; cursor: pointer; font-weight: 600; }
         button:hover { background-color: var(--accent); }
         select { padding: 10px; border-radius: 6px; border: 1px solid #ced4da; font-size: 14px; flex-grow: 1; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; border-radius: 8px; overflow: hidden; font-size: 14px; }
-        th { background-color: #f8f9fa; color: #495057; font-weight: 700; padding: 12px; text-transform: uppercase; font-size: 11px; border-bottom: 2px solid #e9ecef; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 8px; overflow: hidden; font-size: 14px; }
+        th { background-color: #f8f9fa; color: #495057; padding: 12px; text-transform: uppercase; font-size: 11px; }
         td { padding: 12px; border-bottom: 1px solid #edf2f7; text-align: center; }
         tr:hover { background-color: #f1f7fd; }
     </style>
@@ -50,10 +76,7 @@
 </div>
 
 <script>
-    // PWA Service Worker Registration
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js').catch(console.error);
-    }
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(console.error); }
 
     const giorniMappa = { "Domenica": "DOM", "Lunedì": "LUN", "Martedì": "MAR", "Mercoledì": "MER", "Giovedì": "GIO", "Venerdì": "VEN", "Sabato": "SAB" };
     const oggi = new Date();
