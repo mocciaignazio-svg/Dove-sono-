@@ -4,12 +4,5 @@
   "start_url": "/AppOrario/index.html",
   "display": "standalone",
   "background_color": "#f0f2f5",
-  "theme_color": "#2c3e50",
-  "icons": [
-    {
-      "src": "/AppOrario/logo.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+  "theme_color": "#2c3e50"
 }
