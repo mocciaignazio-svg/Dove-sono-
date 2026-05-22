@@ -76,7 +76,7 @@
 </div>
 
 <script>
-    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(console.error); }
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/AppOrario/sw.js').catch(console.error); }
 
     const giorniMappa = { "Domenica": "DOM", "Lunedì": "LUN", "Martedì": "MAR", "Mercoledì": "MER", "Giovedì": "GIO", "Venerdì": "VEN", "Sabato": "SAB" };
     const oggi = new Date();
