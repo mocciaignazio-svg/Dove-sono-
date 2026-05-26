@@ -66,7 +66,6 @@
         const res = await fetch(`${API_URL}?sheet=ORARIO`);
         const data = await res.json();
         
-        // Mappa il filtro in base al tipo selezionato
         let filtroCampo = (tipo === 'CLASSI') ? 'CLASSE' : (tipo === 'DOCENTI') ? 'DOCENTE' : (tipo === 'AULE') ? 'AULA' : 'MATERIA';
         let giornoBreve = giorniMappa[nomeGiornoCompleto];
         
@@ -74,13 +73,21 @@
         filtrati.sort((a, b) => a.ORA - b.ORA);
         
         let html = `<h3>${valore}</h3><table><tr><th>ORA</th><th>DETTAGLI</th></tr>`;
-        if (filtrati.length === 0) html += `<tr><td colspan="2">Nessuna lezione oggi.</td></tr>`;
-        else {
+        
+        if (filtrati.length === 0) {
+            html += `<tr><td colspan="2">Nessuna lezione oggi.</td></tr>`;
+        } else {
             filtrati.forEach(r => {
-                let info = (tipo === 'CLASSI') ? `${r.DOCENTE} - ${r.MATERIA} (${r.AULA})` : 
-                           (tipo === 'DOCENTI') ? `${r.CLASSE} - ${r.MATERIA} (${r.AULA})` :
-                           (tipo === 'AULE') ? `${r.CLASSE} - ${r.DOCENTE} - ${r.MATERIA}` :
-                           `${r.CLASSE} - ${r.DOCENTE} (${r.AULA})`;
+                let info = "";
+                if (tipo === 'CLASSI') {
+                    info = `${r.DOCENTE} - ${r.MATERIA} (${r.AULA})`;
+                } else if (tipo === 'DOCENTI') {
+                    info = `${r.CLASSE} - ${r.MATERIA} (${r.AULA})`;
+                } else if (tipo === 'AULE') {
+                    info = `${r.CLASSE} - ${r.DOCENTE} - ${r.MATERIA}`;
+                } else if (tipo === 'MATERIE') {
+                    info = `Classe: <b>${r.CLASSE}</b> | Docente: ${r.DOCENTE} | Aula: ${r.AULA}`;
+                }
                 html += `<tr><td>${r.ORA}</td><td>${info}</td></tr>`;
             });
         }
