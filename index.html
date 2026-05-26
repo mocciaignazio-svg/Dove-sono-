@@ -5,35 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Dove sono?</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
     <style>
-        :root { --primary: #2c3e50; --accent: #3498db; --bg-app: #f0f2f5; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-app); margin: 0; padding: 20px; color: #333; }
+        :root { --primary: #2c3e50; --accent: #3498db; --bg-app: #f0f2f5; --highlight: #d1ecf1; }
+        body { font-family: sans-serif; background-color: var(--bg-app); margin: 0; padding: 20px; color: #333; }
         .wrapper { max-width: 1000px; margin: 0 auto; }
+        
+        #menu { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+        #menu::-webkit-scrollbar { display: none; }
+        #menu button { flex: 0 0 auto; min-width: 100px; padding: 10px; border: none; border-radius: 6px; background-color: var(--primary); color: white; font-weight: 600; transition: background 0.3s; }
+        #menu button.active { background-color: var(--accent); }
+
         .controls { margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.6); border-radius: 10px; display: flex; flex-wrap: wrap; gap: 10px; }
-        button { padding: 10px 15px; border: none; border-radius: 6px; background-color: var(--primary); color: white; cursor: pointer; font-weight: 600; }
-        button:hover { background-color: var(--accent); }
-        select { padding: 10px; border-radius: 6px; border: 1px solid #ced4da; flex-grow: 1; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 8px; overflow: hidden; font-size: 13px; }
-        th { background-color: #f8f9fa; padding: 10px; text-transform: uppercase; font-size: 10px; }
-        td { padding: 10px; border-bottom: 1px solid #edf2f7; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; font-size: 12px; }
+        th, td { padding: 8px; border: 1px solid #ddd; text-align: center; }
+        .oggi-highlight { background-color: var(--highlight) !important; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="wrapper">
     <h2 id="titolo-giorno">📅 Caricamento...</h2>
-    <div id="menu" style="display:flex; gap: 5px; flex-wrap: wrap;">
-        <button onclick="caricaMenu('CLASSI', 'NOME_CLASSE')">Classi</button>
-        <button onclick="caricaMenu('DOCENTI', 'NOME_DOCENTE')">Docenti</button>
-        <button onclick="caricaMenu('AULE', 'NOME_AULA')">Aule</button>
-        <button onclick="caricaMenu('MATERIE', 'NOME_MATERIA')">Materie</button>
+    <div id="menu">
+        <button onclick="selezionaMenu(this, 'CLASSI', 'NOME_CLASSE')">Classi</button>
+        <button onclick="selezionaMenu(this, 'DOCENTI', 'NOME_DOCENTE')">Docenti</button>
+        <button onclick="selezionaMenu(this, 'AULE', 'NOME_AULA')">Aule</button>
+        <button onclick="selezionaMenu(this, 'MATERIE', 'NOME_MATERIA')">Materie</button>
     </div>
 
     <div class="controls">
-        <select id="select-valore" onchange="gestisciSelezione()">
-            <option value="">-- Seleziona --</option>
-        </select>
+        <select id="select-valore" onchange="gestisciSelezione()"><option value="">-- Seleziona --</option></select>
         <button onclick="mostraSettimanale()">Orario Sett.</button>
     </div>
     <div id="tabella"></div>
@@ -42,11 +42,18 @@
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbySJBpVCUT_manCmfSlbIzuJioSfbGEHxgxb6rMIDEiuc75cw36c66WcPOCK9L-Fbw/exec";
     let tipoCorrente = "";
-    
     const oggi = new Date();
     const giorniMappa = { "Domenica": "DOM", "Lunedì": "LUN", "Martedì": "MAR", "Mercoledì": "MER", "Giovedì": "GIO", "Venerdì": "VEN", "Sabato": "SAB" };
     const nomeGiornoCompleto = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"][oggi.getDay()];
-    document.getElementById("titolo-giorno").innerHTML = `📅 Oggi è <b>${nomeGiornoCompleto}</b>`;
+    const giornoBreveOggi = giorniMappa[nomeGiornoCompleto];
+    
+    document.getElementById("titolo-giorno").innerHTML = `📅 Oggi: <b>${nomeGiornoCompleto}</b>`;
+
+    function selezionaMenu(btn, foglio, colonna) {
+        document.querySelectorAll('#menu button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        caricaMenu(foglio, colonna);
+    }
 
     async function caricaMenu(foglio, colonna) {
         tipoCorrente = foglio;
@@ -65,49 +72,51 @@
     async function mostraOrario(valore, tipo) {
         const res = await fetch(`${API_URL}?sheet=ORARIO`);
         const data = await res.json();
-        
         let filtroCampo = (tipo === 'CLASSI') ? 'CLASSE' : (tipo === 'DOCENTI') ? 'DOCENTE' : (tipo === 'AULE') ? 'AULA' : 'MATERIA';
-        let giornoBreve = giorniMappa[nomeGiornoCompleto];
-        
-        let filtrati = data.filter(r => r[filtroCampo] == valore && r.GIORNO == giornoBreve);
+        let filtrati = data.filter(r => r[filtroCampo] == valore && r.GIORNO == giornoBreveOggi);
         filtrati.sort((a, b) => a.ORA - b.ORA);
         
-        let html = `<h3>${valore}</h3><table><tr><th>ORA</th><th>DETTAGLI</th></tr>`;
-        
-        if (filtrati.length === 0) {
-            html += `<tr><td colspan="2">Nessuna lezione oggi.</td></tr>`;
-        } else {
-            filtrati.forEach(r => {
-                let info = "";
-                if (tipo === 'CLASSI') {
-                    info = `${r.DOCENTE} - ${r.MATERIA} (${r.AULA})`;
-                } else if (tipo === 'DOCENTI') {
-                    info = `${r.CLASSE} - ${r.MATERIA} (${r.AULA})`;
-                } else if (tipo === 'AULE') {
-                    info = `${r.CLASSE} - ${r.DOCENTE} - ${r.MATERIA}`;
-                } else if (tipo === 'MATERIE') {
-                    info = `Classe: <b>${r.CLASSE}</b> | Docente: ${r.DOCENTE} | Aula: ${r.AULA}`;
-                }
-                html += `<tr><td>${r.ORA}</td><td>${info}</td></tr>`;
-            });
-        }
+        let html = `<h3>${valore}</h3><table><tr><th>ORA</th>`;
+        if (tipo === 'CLASSI') html += `<th>AULA</th><th>MATERIA</th><th>DOCENTE</th></tr>`;
+        else if (tipo === 'DOCENTI') html += `<th>CLASSE</th><th>AULA</th><th>MATERIA</th></tr>`;
+        else if (tipo === 'AULE') html += `<th>CLASSE</th><th>DOCENTE</th><th>MATERIA</th></tr>`;
+        else html += `<th>CLASSE</th><th>DOCENTE</th><th>AULA</th></tr>`;
+
+        filtrati.forEach(r => {
+            html += `<tr><td>${r.ORA}</td>` + 
+                    ((tipo === 'CLASSI') ? `<td>${r.AULA}</td><td>${r.MATERIA}</td><td>${r.DOCENTE}</td>` :
+                     (tipo === 'DOCENTI') ? `<td>${r.CLASSE}</td><td>${r.AULA}</td><td>${r.MATERIA}</td>` :
+                     (tipo === 'AULE') ? `<td>${r.CLASSE}</td><td>${r.DOCENTE}</td><td>${r.MATERIA}</td>` :
+                     `<td>${r.CLASSE}</td><td>${r.DOCENTE}</td><td>${r.AULA}</td>`) + `</tr>`;
+        });
         document.getElementById('tabella').innerHTML = html + `</table>`;
     }
 
     async function mostraSettimanale() {
         const valore = document.getElementById('select-valore').value;
-        if (!valore) { alert("Seleziona prima una voce!"); return; }
-        
+        if (!valore) return alert("Seleziona una voce!");
         const res = await fetch(`${API_URL}?sheet=ORARIO`);
         const data = await res.json();
         const giorni = ['LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB'];
         let filtroCampo = (tipoCorrente === 'CLASSI') ? 'CLASSE' : (tipoCorrente === 'DOCENTI') ? 'DOCENTE' : (tipoCorrente === 'AULE') ? 'AULA' : 'MATERIA';
         
-        let html = `<h3>${valore}</h3><table><tr><th>ORA</th>` + giorni.map(g => `<th>${g}</th>`).join('') + `</tr>`;
+        let html = `<h3>${valore}</h3><table><tr><th>ORA</th>` + 
+                    giorni.map(g => `<th class="${g === giornoBreveOggi ? 'oggi-highlight' : ''}">${g}</th>`).join('') + `</tr>`;
+        
         for (let ora = 1; ora <= 6; ora++) {
             html += `<tr><td>${ora}</td>` + giorni.map(g => {
-                const lez = data.find(r => r[filtroCampo] === valore && r.GIORNO === g && r.ORA == ora);
-                return `<td>${lez ? lez.MATERIA : "-"}</td>`;
+                const r = data.find(item => item[filtroCampo] === valore && item.GIORNO === g && item.ORA == ora);
+                const isOggi = (g === giornoBreveOggi);
+                const classeCss = isOggi ? 'class="oggi-highlight"' : '';
+                
+                let content = "-";
+                if (r) {
+                    if (tipoCorrente === 'CLASSI') content = `${r.DOCENTE}<br><b>${r.MATERIA}</b><br><small>${r.AULA}</small>`;
+                    else if (tipoCorrente === 'DOCENTI') content = `${r.MATERIA}<br><b>${r.CLASSE}</b><br><small>${r.AULA}</small>`;
+                    else if (tipoCorrente === 'AULE') content = `${r.DOCENTE}<br><b>${r.MATERIA}</b><br><small>${r.CLASSE}</small>`;
+                    else content = `${r.DOCENTE}<br><b>${r.CLASSE}</b><br><small>${r.AULA}</small>`;
+                }
+                return `<td ${classeCss}>${content}</td>`;
             }).join('') + `</tr>`;
         }
         document.getElementById('tabella').innerHTML = html + `</table>`;
