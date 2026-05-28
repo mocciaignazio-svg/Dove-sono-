@@ -10,10 +10,8 @@
         body { font-family: sans-serif; background-color: var(--bg-app); margin: 0; padding: 20px; color: #333; }
         .wrapper { max-width: 1000px; margin: 0 auto; }
         
-        /* Classe per evidenziare l'ora */
         .ora-attiva { background-color: #3498db !important; color: white !important; font-weight: bold; }
         
-        /* Menu a scorrimento orizzontale */
         #menu { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; white-space: nowrap; -webkit-overflow-scrolling: touch; }
         #menu::-webkit-scrollbar { display: none; }
         #menu button { flex: 0 0 auto; min-width: 100px; transition: background 0.3s; }
@@ -56,7 +54,7 @@
         const ora = now.getHours();
         const min = now.getMinutes();
         const giorniSettimana = ["DOM", "LUN", "MAR", "MER", "GIO", "VEN", "SAB"];
-        const gOggi = giorniSettimana[now.getDay()]; // Es: "GIO"
+        const gOggi = giorniSettimana[now.getDay()];
         
         let oraScolastica = 0;
         if (ora === 8 && min >= 15) oraScolastica = 1;
@@ -69,30 +67,21 @@
         else if (ora === 12 && min < 15) oraScolastica = 4;
         else if (ora === 12 && min >= 15) oraScolastica = 5;
 
-        if (oraScolastica === 0) return; // Fuori orario scolastico
+        if (oraScolastica === 0) return;
 
         const tabelle = document.querySelectorAll('table');
         tabelle.forEach(tabella => {
             const intestazioni = tabella.querySelectorAll('th');
             let indiceGiorno = -1;
-
-            // Trova l'indice della colonna del giorno corrente
-            intestazioni.forEach((th, index) => {
-                if (th.innerText === gOggi) indiceGiorno = index;
-            });
-
+            intestazioni.forEach((th, index) => { if (th.innerText === gOggi) indiceGiorno = index; });
+            
             const righe = tabella.querySelectorAll('tr');
             righe.forEach(riga => {
                 const celle = riga.querySelectorAll('td');
-                // Se è la vista singola (ha solo celle ORA, AULA/CLASSE, ecc.)
-                if (celle.length > 0 && indiceGiorno === -1) {
-                    if (parseInt(celle[0].innerText) === oraScolastica) {
-                        riga.classList.add('ora-attiva');
-                    }
-                } 
-                // Se è la vista settimanale (ha indiceGiorno valido)
-                else if (indiceGiorno !== -1 && celle.length > 0) {
-                    if (parseInt(celle[0].innerText) === oraScolastica) {
+                if (celle.length > 0) {
+                    if (indiceGiorno === -1) {
+                        if (parseInt(celle[0].innerText) === oraScolastica) riga.classList.add('ora-attiva');
+                    } else if (parseInt(celle[0].innerText) === oraScolastica) {
                         celle[indiceGiorno].classList.add('ora-attiva');
                     }
                 }
@@ -117,7 +106,11 @@
 
     function gestisciSelezione() {
         const valore = document.getElementById('select-valore').value;
-        if (valore) mostraOrario(valore, tipoCorrente);
+        if (valore) {
+            localStorage.setItem('lastVal', valore);
+            localStorage.setItem('lastType', tipoCorrente);
+            mostraOrario(valore, tipoCorrente);
+        }
     }
 
     async function mostraOrario(valore, tipo) {
@@ -141,7 +134,7 @@
                      `<td>${r.CLASSE}</td><td>${r.DOCENTE}</td><td>${r.AULA}</td>`) + `</tr>`;
         });
         document.getElementById('tabella').innerHTML = html + `</table>`;
-        evidenziaOraCorrente();
+        setTimeout(evidenziaOraCorrente, 100);
     }
 
     async function mostraSettimanale() {
@@ -164,8 +157,25 @@
             }).join('') + `</tr>`;
         }
         document.getElementById('tabella').innerHTML = html + `</table>`;
-        evidenziaOraCorrente();
+        setTimeout(evidenziaOraCorrente, 100);
     }
+
+    window.onload = async () => {
+        const lastVal = localStorage.getItem('lastVal');
+        const lastType = localStorage.getItem('lastType');
+
+        if (lastVal && lastType) {
+            const btnMap = { 'CLASSI': 0, 'DOCENTI': 1, 'AULE': 2, 'MATERIE': 3 };
+            const colMap = { 'CLASSI': 'NOME_CLASSE', 'DOCENTI': 'NOME_DOCENTE', 'AULE': 'NOME_AULA', 'MATERIE': 'NOME_MATERIA' };
+            const btns = document.querySelectorAll('#menu button');
+            selezionaMenu(btns[btnMap[lastType]], lastType, colMap[lastType]);
+            await new Promise(r => setTimeout(r, 800));
+            document.getElementById('select-valore').value = lastVal;
+            mostraOrario(lastVal, lastType);
+        } else {
+            selezionaMenu(document.querySelectorAll('#menu button')[1], 'DOCENTI', 'NOME_DOCENTE');
+        }
+    };
 </script>
 </body>
 </html>
