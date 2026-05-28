@@ -1,6 +1,6 @@
 {
   "name": "Orario Docenti",
-  "short_name": "Orari",
+  "short_name": "Whereareyou",
   "description": "Consultazione orari scolastici",
   "start_url": "./index.html",
   "display": "standalone",
