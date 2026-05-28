@@ -10,15 +10,11 @@
         body { font-family: sans-serif; background-color: var(--bg-app); margin: 0; padding: 20px; color: #333; }
         .wrapper { max-width: 1000px; margin: 0 auto; }
         
+        /* Classe per evidenziare l'ora */
+        .ora-attiva { background-color: #3498db !important; color: white !important; font-weight: bold; }
+        
         /* Menu a scorrimento orizzontale */
-        #menu {
-            display: flex;
-            overflow-x: auto;
-            gap: 10px;
-            padding-bottom: 10px;
-            white-space: nowrap;
-            -webkit-overflow-scrolling: touch;
-        }
+        #menu { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; white-space: nowrap; -webkit-overflow-scrolling: touch; }
         #menu::-webkit-scrollbar { display: none; }
         #menu button { flex: 0 0 auto; min-width: 100px; transition: background 0.3s; }
         #menu button.active { background-color: var(--accent); }
@@ -54,6 +50,55 @@
     const giorniMappa = { "Domenica": "DOM", "Lunedì": "LUN", "Martedì": "MAR", "Mercoledì": "MER", "Giovedì": "GIO", "Venerdì": "VEN", "Sabato": "SAB" };
     const nomeGiornoCompleto = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"][oggi.getDay()];
     document.getElementById("titolo-giorno").innerHTML = `📅 Oggi: <b>${nomeGiornoCompleto}</b>`;
+
+    function evidenziaOraCorrente() {
+        const now = new Date();
+        const ora = now.getHours();
+        const min = now.getMinutes();
+        const giorniSettimana = ["DOM", "LUN", "MAR", "MER", "GIO", "VEN", "SAB"];
+        const gOggi = giorniSettimana[now.getDay()]; // Es: "GIO"
+        
+        let oraScolastica = 0;
+        if (ora === 8 && min >= 15) oraScolastica = 1;
+        else if (ora === 9 && min < 15) oraScolastica = 1;
+        else if (ora === 9 && min >= 15) oraScolastica = 2;
+        else if (ora === 10 && min < 15) oraScolastica = 2;
+        else if (ora === 10 && min >= 15) oraScolastica = 3;
+        else if (ora === 11 && min < 15) oraScolastica = 3;
+        else if (ora === 11 && min >= 15) oraScolastica = 4;
+        else if (ora === 12 && min < 15) oraScolastica = 4;
+        else if (ora === 12 && min >= 15) oraScolastica = 5;
+
+        if (oraScolastica === 0) return; // Fuori orario scolastico
+
+        const tabelle = document.querySelectorAll('table');
+        tabelle.forEach(tabella => {
+            const intestazioni = tabella.querySelectorAll('th');
+            let indiceGiorno = -1;
+
+            // Trova l'indice della colonna del giorno corrente
+            intestazioni.forEach((th, index) => {
+                if (th.innerText === gOggi) indiceGiorno = index;
+            });
+
+            const righe = tabella.querySelectorAll('tr');
+            righe.forEach(riga => {
+                const celle = riga.querySelectorAll('td');
+                // Se è la vista singola (ha solo celle ORA, AULA/CLASSE, ecc.)
+                if (celle.length > 0 && indiceGiorno === -1) {
+                    if (parseInt(celle[0].innerText) === oraScolastica) {
+                        riga.classList.add('ora-attiva');
+                    }
+                } 
+                // Se è la vista settimanale (ha indiceGiorno valido)
+                else if (indiceGiorno !== -1 && celle.length > 0) {
+                    if (parseInt(celle[0].innerText) === oraScolastica) {
+                        celle[indiceGiorno].classList.add('ora-attiva');
+                    }
+                }
+            });
+        });
+    }
 
     function selezionaMenu(btn, foglio, colonna) {
         document.querySelectorAll('#menu button').forEach(b => b.classList.remove('active'));
@@ -96,6 +141,7 @@
                      `<td>${r.CLASSE}</td><td>${r.DOCENTE}</td><td>${r.AULA}</td>`) + `</tr>`;
         });
         document.getElementById('tabella').innerHTML = html + `</table>`;
+        evidenziaOraCorrente();
     }
 
     async function mostraSettimanale() {
@@ -118,15 +164,7 @@
             }).join('') + `</tr>`;
         }
         document.getElementById('tabella').innerHTML = html + `</table>`;
-    }
-
-    // Registrazione del Service Worker
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
-                .then(reg => console.log('Service Worker registrato con successo!'))
-                .catch(err => console.log('Errore nella registrazione del Service Worker: ', err));
-        });
+        evidenziaOraCorrente();
     }
 </script>
 </body>
